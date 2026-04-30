@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Analyse — MediCollect{% endblock %}
+
+{% block content %}
+{% if empty %}
+  <div class="empty-state">
+    <i class="fas fa-chart-bar"></i>
+    <p>Aucune donnée à analyser.</p>
+    <a href="{{ url_for('index') }}" class="btn-submit">Ajouter des patients</a>
+  </div>
+{% else %}
+
+<div class="page-header">
+  <h1><i class="fas fa-chart-bar"></i> Analyse Descriptive</h1>
+</div>
+
+<div class="metrics-grid">
+  <div class="metric-card"><div class="metric-icon"><i class="fas fa-users"></i></div><div class="metric-value">{{ total }}</div><div class="metric-label">Total</div></div>
+  <div class="metric-card blue"><div class="metric-icon"><i class="fas fa-male"></i></div><div class="metric-value">{{ hommes }}</div><div class="metric-label">Hommes</div></div>
+  <div class="metric-card pink"><div class="metric-icon"><i class="fas fa-female"></i></div><div class="metric-value">{{ femmes }}</div><div class="metric-label">Femmes</div></div>
+  <div class="metric-card green"><div class="metric-icon"><i class="fas fa-heartbeat"></i></div><div class="metric-value">{{ gueris }}</div><div class="metric-label">Guéris</div></div>
+  <div class="metric-card orange"><div class="metric-icon"><i class="fas fa-procedures"></i></div><div class="metric-value">{{ en_cours }}</div><div class="metric-label">En cours</div></div>
+  <div class="metric-card purple"><div class="metric-icon"><i class="fas fa-percentage"></i></div><div class="metric-value">{{ interpretations.taux_guerison }}%</div><div class="metric-label">Taux de guérison</div></div>
+</div>
+
+<div class="summary-cards">
+  <div class="summary-card"><h4>🎂 Âge moyen</h4><p>{{ interpretations.age_moyen }} ans</p></div>
+  <div class="summary-card"><h4>🌡️ Température moyenne</h4><p>{{ interpretations.temp_moyenne }} °C</p></div>
+  <div class="summary-card"><h4>⏱️ Durée moyenne</h4><p>{{ interpretations.duree_moyenne }} jours</p></div>
+  <div class="summary-card"><h4>💰 Coût moyen</h4><p>{{ interpretations.cout_moyen }} FCFA</p></div>
+  <div class="summary-card"><h4>💸 Coût total</h4><p>{{ interpretations.cout_total }} FCFA</p></div>
+  <div class="summary-card"><h4>🦠 Maladie fréquente</h4><p>{{ interpretations.top_maladie }}</p></div>
+</div>
+
+<div class="section">
+  <h2><i class="fas fa-table"></i> Statistiques descriptives (quantitatives)</h2>
+  <div class="table-wrapper">
+    <table class="stats-table">
+      <thead>
+        <tr>
+          <th>Variable</th><th>n</th><th>Moyenne</th><th>Médiane</th><th>Mode</th>
+          <th>Écart-type</th><th>Variance</th><th>Min</th><th>Max</th><th>Étendue</th>
+          <th>Q1</th><th>Q3</th><th>IQR</th><th>CV (%)</th><th>Skew</th><th>Kurtosis</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in stats_table %}
+        <tr>
+          <td><strong>{{ s.variable }}</strong></td>
+          <td>{{ s.n }}</td>
+          <td>{{ s.moyenne }}</td>
+          <td>{{ s.mediane }}</td>
+          <td>{{ s.mode }}</td>
+          <td>{{ s.ecart_type }}</td>
+          <td>{{ s.variance }}</td>
+          <td>{{ s.minimum }}</td>
+          <td>{{ s.maximum }}</td>
+          <td>{{ s.etendue }}</td>
+          <td>{{ s.q1 }}</td>
+          <td>{{ s.q3 }}</td>
+          <td>{{ s.iqr }}</td>
+          <td>{{ s.cv }}</td>
+          <td>{{ s.skewness }}</td>
+          <td>{{ s.kurtosis }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <h2><i class="fas fa-list"></i> Tableaux de fréquences (qualitatives)</h2>
+  <div class="freq-grid">
+    {% for var_name, rows in freq_tables.items() %}
+    <div class="freq-card">
+      <h4>{{ var_name }}</h4>
+      <table class="freq-table">
+        <thead><tr><th>Modalité</th><th>Effectif</th><th>Fréq (%)</th></tr></thead>
+        <tbody>
+        {% for r in rows %}
+          <tr><td>{{ r.modalite }}</td><td>{{ r.effectif }}</td><td>{{ r.frequence }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="section">
+  <h2><i class="fas fa-chart-pie"></i> Visualisations interactives</h2>
+
+  <div class="charts-grid">
+    <div class="chart-box"><div id="chart-maladie"></div></div>
+    <div class="chart-box"><div id="chart-sexe"></div></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-box"><div id="chart-age"></div></div>
+    <div class="chart-box"><div id="chart-statut"></div></div>
+  </div>
+
+  <div class="chart-box-full"><div id="chart-cout-duree"></div></div>
+
+  <div class="charts-grid">
+    <div class="chart-box"><div id="chart-service"></div></div>
+    <div class="chart-box"><div id="chart-cout-service"></div></div>
+  </div>
+
+  <div class="chart-box-full"><div id="chart-correlation"></div></div>
+</div>
+
+<div class="section interpretation">
+  <h2><i class="fas fa-lightbulb"></i> Interprétation</h2>
+  <div class="interp-content">
+    <ul>
+      <li><strong>Service le plus sollicité :</strong> {{ interpretations.top_service }}</li>
+      <li><strong>Maladie la plus fréquente :</strong> {{ interpretations.top_maladie }}</li>
+      <li><strong>Taux de guérison :</strong> {{ interpretations.taux_guerison }}%</li>
+      <li><strong>Corrélation durée-coût :</strong> {{ interpretations.corr }}</li>
+    </ul>
+    <p class="note">
+      Cette page fournit une analyse descriptive : tendances centrales (moyenne/médiane/mode),
+      dispersion (écart-type/variance/IQR/CV), forme (skewness/kurtosis), fréquences et corrélations.
+    </p>
+  </div>
+</div>
+
+<script>
+  Plotly.newPlot('chart-maladie', {{ graphs.maladie | safe }}.data, {{ graphs.maladie | safe }}.layout);
+  Plotly.newPlot('chart-sexe', {{ graphs.sexe | safe }}.data, {{ graphs.sexe | safe }}.layout);
+  Plotly.newPlot('chart-age', {{ graphs.age | safe }}.data, {{ graphs.age | safe }}.layout);
+  Plotly.newPlot('chart-statut', {{ graphs.statut | safe }}.data, {{ graphs.statut | safe }}.layout);
+  Plotly.newPlot('chart-cout-duree', {{ graphs.cout_duree | safe }}.data, {{ graphs.cout_duree | safe }}.layout);
+  Plotly.newPlot('chart-service', {{ graphs.service | safe }}.data, {{ graphs.service | safe }}.layout);
+  Plotly.newPlot('chart-cout-service', {{ graphs.cout_service | safe }}.data, {{ graphs.cout_service | safe }}.layout);
+  Plotly.newPlot('chart-correlation', {{ graphs.correlation | safe }}.data, {{ graphs.correlation | safe }}.layout);
+</script>
+
+{% endif %}
+{% endblock %}
