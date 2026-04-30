@@ -1,114 +1,133 @@
 {% extends 'base.html' %}
 {% block title %}Accueil — MediCollect{% endblock %}
-
 {% block content %}
-<div class="hero">
-  <img src="{{ url_for('static', filename='hospital.avif') }}" class="hero-img" alt="Hospital">
-  <h1><i class="fas fa-hospital"></i> MediCollect</h1>
-  <p class="hero-subtitle">Collecte et Analyse Descriptive des Données des Patients</p>
+
+<!-- GUIDE UTILISATEUR -->
+<div class="guide">
+  <h2><i class="fas fa-info-circle"></i> Guide d'utilisation</h2>
+  <div class="guide-steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <strong>Remplissez le formulaire</strong><br>
+        Saisissez les informations du patient ci-dessous et cliquez sur <em>Enregistrer</em>.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <strong>Consultez les données</strong><br>
+        Allez dans <em>Données</em> pour voir, modifier ou supprimer les patients enregistrés.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <strong>Analysez les données</strong><br>
+        Allez dans <em>Analyse</em> pour voir les statistiques descriptives,
+        les régressions linéaires et les graphiques interactifs.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div>
+        <strong>Exportez les données</strong><br>
+        Cliquez sur <em>CSV</em> dans la barre pour télécharger toutes les données.
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="form-container">
+<!-- FORMULAIRE -->
+<div class="card">
   <h2><i class="fas fa-user-plus"></i> Enregistrer un Patient</h2>
 
-  <form action="{{ url_for('add_patient') }}" method="POST" class="patient-form">
+  <form action="{{ url_for('add') }}" method="POST">
 
     <div class="form-section">
-      <h3><i class="fas fa-user"></i> Informations Personnelles</h3>
-      <div class="form-grid">
-        <div class="form-group">
+      <h3><i class="fas fa-user"></i> Informations personnelles</h3>
+      <div class="grid5">
+        <div class="fg">
           <label>Nom complet *</label>
-          <input type="text" name="nom" required placeholder="Ex: Kamga Jean">
+          <input type="text" name="nom" required placeholder="Ex : Kamga Jean">
         </div>
-
-        <div class="form-group">
-          <label>Âge *</label>
-          <input type="number" name="age" min="0" max="120" required placeholder="Ex: 33">
+        <div class="fg">
+          <label>Âge * (0-120)</label>
+          <input type="number" name="age" min="0" max="120" required placeholder="Ex : 33">
         </div>
-
-        <div class="form-group">
+        <div class="fg">
           <label>Sexe *</label>
           <select name="sexe" required>
             <option value="">-- Choisir --</option>
-            <option value="Homme">Homme</option>
-            <option value="Femme">Femme</option>
+            <option>Homme</option>
+            <option>Femme</option>
           </select>
         </div>
-
-        <div class="form-group">
+        <div class="fg">
           <label>Groupe sanguin</label>
           <select name="groupe_sanguin">
-            <option value="">-- Choisir --</option>
-            {% for gs in groupes_sanguins %}
-              <option value="{{ gs }}">{{ gs }}</option>
-            {% endfor %}
+            <option value="">-- Optionnel --</option>
+            {% for g in groupes %}<option>{{ g }}</option>{% endfor %}
           </select>
         </div>
-
-        <div class="form-group">
+        <div class="fg">
           <label>Poids (kg)</label>
-          <input type="number" step="0.1" name="poids" placeholder="Ex: 72.5">
+          <input type="number" step="0.1" name="poids" placeholder="Ex : 72.5">
         </div>
       </div>
     </div>
 
     <div class="form-section">
-      <h3><i class="fas fa-stethoscope"></i> Informations Médicales</h3>
-      <div class="form-grid">
-        <div class="form-group">
+      <h3><i class="fas fa-stethoscope"></i> Informations médicales</h3>
+      <div class="grid5">
+        <div class="fg">
           <label>Maladie / Diagnostic *</label>
           <select name="maladie" required>
             <option value="">-- Choisir --</option>
-            {% for m in maladies %}
-              <option value="{{ m }}">{{ m }}</option>
-            {% endfor %}
+            {% for m in maladies %}<option>{{ m }}</option>{% endfor %}
           </select>
         </div>
-
-        <div class="form-group">
+        <div class="fg">
           <label>Service *</label>
           <select name="service" required>
             <option value="">-- Choisir --</option>
-            {% for s in services %}
-              <option value="{{ s }}">{{ s }}</option>
-            {% endfor %}
+            {% for s in services %}<option>{{ s }}</option>{% endfor %}
           </select>
         </div>
-
-        <div class="form-group">
-          <label>Température (°C) *</label>
-          <input type="number" step="0.1" min="34" max="43" name="temperature" required placeholder="Ex: 37.6">
+        <div class="fg">
+          <label>Température (°C) * [34-43]</label>
+          <input type="number" step="0.1" name="temperature"
+                 min="34" max="43" required placeholder="Ex : 37.6">
         </div>
-
-        <div class="form-group">
-          <label>Tension systolique (mmHg)</label>
-          <input type="number" name="tension_systolique" placeholder="Ex: 120">
+        <div class="fg">
+          <label>Tension systolique</label>
+          <input type="number" name="tension_systolique" placeholder="Ex : 120">
         </div>
-
-        <div class="form-group">
-          <label>Tension diastolique (mmHg)</label>
-          <input type="number" name="tension_diastolique" placeholder="Ex: 80">
+        <div class="fg">
+          <label>Tension diastolique</label>
+          <input type="number" name="tension_diastolique" placeholder="Ex : 80">
         </div>
       </div>
     </div>
 
     <div class="form-section">
       <h3><i class="fas fa-money-bill-wave"></i> Hospitalisation</h3>
-      <div class="form-grid">
-        <div class="form-group">
+      <div class="grid2">
+        <div class="fg">
           <label>Durée d'hospitalisation (jours) *</label>
-          <input type="number" name="duree" min="1" max="365" required placeholder="Ex: 14">
+          <input type="number" name="duree" min="1" max="365"
+                 required placeholder="Ex : 14">
         </div>
-
-        <div class="form-group">
+        <div class="fg">
           <label>Coût du traitement (FCFA) *</label>
-          <input type="number" name="cout" min="0" step="500" required placeholder="Ex: 30000">
+          <input type="number" name="cout" min="0" step="500"
+                 required placeholder="Ex : 30000">
         </div>
       </div>
     </div>
 
-    <button class="btn-submit" type="submit">
-      <i class="fas fa-save"></i> Enregistrer
+    <button class="btn-primary" type="submit">
+      <i class="fas fa-save"></i> Enregistrer le patient
     </button>
   </form>
 </div>

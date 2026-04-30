@@ -1,105 +1,84 @@
 {% extends 'base.html' %}
 {% block title %}Modifier — MediCollect{% endblock %}
-
 {% block content %}
-<div class="form-container">
-  <h2><i class="fas fa-edit"></i> Modifier : {{ patient["nom"] }}</h2>
 
-  <form action="{{ url_for('edit', id=patient['id']) }}" method="POST" class="patient-form">
+<div class="card">
+  <h2><i class="fas fa-edit"></i> Modifier : {{ p['nom'] }}</h2>
+
+  <form action="{{ url_for('edit', pid=p['id']) }}" method="POST">
 
     <div class="form-section">
-      <h3><i class="fas fa-user"></i> Informations Personnelles</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Nom *</label>
-          <input type="text" name="nom" value="{{ patient['nom'] }}" required>
-        </div>
-        <div class="form-group">
-          <label>Âge *</label>
-          <input type="number" name="age" min="0" max="120" value="{{ patient['age'] }}" required>
-        </div>
-        <div class="form-group">
-          <label>Sexe *</label>
+      <h3><i class="fas fa-user"></i> Informations personnelles</h3>
+      <div class="grid5">
+        <div class="fg"><label>Nom *</label>
+          <input type="text" name="nom" value="{{ p['nom'] }}" required></div>
+        <div class="fg"><label>Âge *</label>
+          <input type="number" name="age" value="{{ p['age'] }}" min="0" max="120" required></div>
+        <div class="fg"><label>Sexe *</label>
           <select name="sexe" required>
-            <option value="Homme" {{ 'selected' if patient['sexe']=='Homme' else '' }}>Homme</option>
-            <option value="Femme" {{ 'selected' if patient['sexe']=='Femme' else '' }}>Femme</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Groupe sanguin</label>
+            <option {{ 'selected' if p['sexe']=='Homme' }}>Homme</option>
+            <option {{ 'selected' if p['sexe']=='Femme' }}>Femme</option>
+          </select></div>
+        <div class="fg"><label>Groupe sanguin</label>
           <select name="groupe_sanguin">
-            <option value="">--</option>
-            {% for gs in groupes_sanguins %}
-              <option value="{{ gs }}" {{ 'selected' if patient['groupe_sanguin']==gs else '' }}>{{ gs }}</option>
+            <option value="">—</option>
+            {% for g in groupes %}
+              <option {{ 'selected' if p['groupe_sanguin']==g }}>{{ g }}</option>
             {% endfor %}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Poids (kg)</label>
-          <input type="number" step="0.1" name="poids" value="{{ patient['poids'] or '' }}">
-        </div>
+          </select></div>
+        <div class="fg"><label>Poids (kg)</label>
+          <input type="number" step="0.1" name="poids" value="{{ p['poids'] or '' }}"></div>
       </div>
     </div>
 
     <div class="form-section">
-      <h3><i class="fas fa-stethoscope"></i> Informations Médicales</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Maladie *</label>
+      <h3><i class="fas fa-stethoscope"></i> Informations médicales</h3>
+      <div class="grid5">
+        <div class="fg"><label>Maladie *</label>
           <select name="maladie" required>
             {% for m in maladies %}
-              <option value="{{ m }}" {{ 'selected' if patient['maladie']==m else '' }}>{{ m }}</option>
+              <option {{ 'selected' if p['maladie']==m }}>{{ m }}</option>
             {% endfor %}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Service *</label>
+          </select></div>
+        <div class="fg"><label>Service *</label>
           <select name="service" required>
             {% for s in services %}
-              <option value="{{ s }}" {{ 'selected' if patient['service']==s else '' }}>{{ s }}</option>
+              <option {{ 'selected' if p['service']==s }}>{{ s }}</option>
             {% endfor %}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Température (°C) *</label>
-          <input type="number" step="0.1" min="34" max="43" name="temperature" value="{{ patient['temperature'] }}" required>
-        </div>
-        <div class="form-group">
-          <label>Tension systolique</label>
-          <input type="number" name="tension_systolique" value="{{ patient['tension_systolique'] or '' }}">
-        </div>
-        <div class="form-group">
-          <label>Tension diastolique</label>
-          <input type="number" name="tension_diastolique" value="{{ patient['tension_diastolique'] or '' }}">
-        </div>
+          </select></div>
+        <div class="fg"><label>Température *</label>
+          <input type="number" step="0.1" name="temperature"
+                 value="{{ p['temperature'] }}" min="34" max="43" required></div>
+        <div class="fg"><label>Tension systolique</label>
+          <input type="number" name="tension_systolique"
+                 value="{{ p['tension_systolique'] or '' }}"></div>
+        <div class="fg"><label>Tension diastolique</label>
+          <input type="number" name="tension_diastolique"
+                 value="{{ p['tension_diastolique'] or '' }}"></div>
       </div>
     </div>
 
     <div class="form-section">
       <h3><i class="fas fa-money-bill-wave"></i> Hospitalisation</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Durée (jours) *</label>
-          <input type="number" name="duree" min="1" max="365" value="{{ patient['duree_hospitalisation'] }}" required>
-        </div>
-        <div class="form-group">
-          <label>Coût (FCFA) *</label>
-          <input type="number" name="cout" min="0" step="500" value="{{ patient['cout_traitement'] }}" required>
-        </div>
-        <div class="form-group">
-          <label>Statut *</label>
+      <div class="grid3">
+        <div class="fg"><label>Durée (jours) *</label>
+          <input type="number" name="duree" value="{{ p['duree'] }}" min="1" required></div>
+        <div class="fg"><label>Coût (FCFA) *</label>
+          <input type="number" name="cout" value="{{ p['cout'] }}" min="0" required></div>
+        <div class="fg"><label>Statut *</label>
           <select name="statut" required>
             {% for st in statuts %}
-              <option value="{{ st }}" {{ 'selected' if patient['statut']==st else '' }}>{{ st }}</option>
+              <option {{ 'selected' if p['statut']==st }}>{{ st }}</option>
             {% endfor %}
-          </select>
-        </div>
+          </select></div>
       </div>
     </div>
 
     <div class="form-actions">
-      <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Sauvegarder</button>
-      <a href="{{ url_for('data') }}" class="btn-cancel"><i class="fas fa-times"></i> Annuler</a>
+      <button class="btn-primary" type="submit">
+        <i class="fas fa-save"></i> Sauvegarder</button>
+      <a class="btn-secondary" href="{{ url_for('data') }}">
+        <i class="fas fa-times"></i> Annuler</a>
     </div>
   </form>
 </div>

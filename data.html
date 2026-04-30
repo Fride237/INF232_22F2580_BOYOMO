@@ -1,69 +1,72 @@
 {% extends 'base.html' %}
 {% block title %}Données — MediCollect{% endblock %}
-
 {% block content %}
+
 <div class="page-header">
-  <h1><i class="fas fa-database"></i> Patients</h1>
-  <span class="badge">{{ total }} enregistrements</span>
+  <h1><i class="fas fa-database"></i> Patients enregistrés</h1>
+  <span class="badge">{{ total }} patient{{ 's' if total > 1 }}</span>
+</div>
+
+<!-- GUIDE -->
+<div class="info-box">
+  <i class="fas fa-lightbulb"></i>
+  <strong>Astuce :</strong> Cliquez sur
+  <span class="tag-blue">Modifier</span> pour éditer un patient,
+  <span class="tag-red">Supprimer</span> pour le supprimer.
+  Utilisez <strong>Export CSV</strong> pour télécharger toutes les données.
 </div>
 
 {% if patients %}
-<div class="table-wrapper">
-  <table class="data-table">
+<div class="table-wrap">
+  <table>
     <thead>
       <tr>
-        <th>#</th>
-        <th>Nom</th>
-        <th>Âge</th>
-        <th>Sexe</th>
-        <th>Groupe</th>
-        <th>Maladie</th>
-        <th>Service</th>
-        <th>Temp</th>
-        <th>Tension</th>
-        <th>Poids</th>
-        <th>Durée</th>
-        <th>Coût</th>
-        <th>Statut</th>
-        <th>Actions</th>
+        <th>#</th><th>Nom</th><th>Âge</th><th>Sexe</th><th>Groupe</th>
+        <th>Maladie</th><th>Service</th><th>Temp.</th><th>Tension</th>
+        <th>Poids</th><th>Durée</th><th>Coût (FCFA)</th><th>Statut</th><th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      {% for p in patients %}
+    {% for p in patients %}
       <tr>
-        <td>{{ p["id"] }}</td>
-        <td><strong>{{ p["nom"] }}</strong></td>
-        <td>{{ p["age"] }}</td>
+        <td>{{ p['id'] }}</td>
+        <td><strong>{{ p['nom'] }}</strong></td>
+        <td>{{ p['age'] }}</td>
+        <td><span class="tag {{ 'tag-blue' if p['sexe']=='Homme' else 'tag-pink' }}">
+          {{ p['sexe'] }}</span></td>
+        <td>{{ p['groupe_sanguin'] or '—' }}</td>
+        <td>{{ p['maladie'] }}</td>
+        <td>{{ p['service'] }}</td>
+        <td class="{{ 'danger-text' if p['temperature'] and p['temperature']>=38.5 }}">
+          {{ p['temperature'] }}</td>
         <td>
-          <span class="tag {{ 'tag-blue' if p['sexe'] == 'Homme' else 'tag-pink' }}">{{ p["sexe"] }}</span>
+          {% if p['tension_systolique'] %}
+            {{ p['tension_systolique'] }}/{{ p['tension_diastolique'] }}
+          {% else %}—{% endif %}
         </td>
-        <td>{{ p["groupe_sanguin"] or "-" }}</td>
-        <td>{{ p["maladie"] }}</td>
-        <td>{{ p["service"] }}</td>
-        <td class="{{ 'temp-high' if p['temperature'] and p['temperature'] >= 38.5 else '' }}">{{ p["temperature"] }}</td>
+        <td>{{ p['poids'] or '—' }}</td>
+        <td>{{ p['duree'] }}</td>
+        <td>{{ '{:,.0f}'.format(p['cout'] or 0) }}</td>
+        <td><span class="statut statut-{{ p['statut']|lower|replace(' ','-') }}">
+          {{ p['statut'] }}</span></td>
         <td>
-          {% if p["tension_systolique"] %}
-            {{ p["tension_systolique"] }}/{{ p["tension_diastolique"] }}
-          {% else %} - {% endif %}
-        </td>
-        <td>{{ p["poids"] or "-" }}</td>
-        <td>{{ p["duree_hospitalisation"] }}</td>
-        <td>{{ "{:,.0f}".format(p["cout_traitement"]) }}</td>
-        <td>{{ p["statut"] }}</td>
-        <td class="actions">
-          <a class="btn-edit" href="{{ url_for('edit', id=p['id']) }}" title="Modifier"><i class="fas fa-edit"></i></a>
-          <a class="btn-delete" href="{{ url_for('delete', id=p['id']) }}" title="Supprimer"
-             onclick="return confirm('Supprimer ce patient ?')"><i class="fas fa-trash"></i></a>
+          <a class="btn-edit" href="{{ url_for('edit', pid=p['id']) }}">
+            <i class="fas fa-edit"></i></a>
+          <a class="btn-del"
+             href="{{ url_for('delete', pid=p['id']) }}"
+             onclick="return confirm('Supprimer {{ p['nom'] }} ?')">
+            <i class="fas fa-trash"></i></a>
         </td>
       </tr>
-      {% endfor %}
+    {% endfor %}
     </tbody>
   </table>
 </div>
 {% else %}
-<div class="empty-state">
+<div class="empty">
   <i class="fas fa-folder-open"></i>
   <p>Aucun patient enregistré.</p>
+  <a class="btn-primary" href="{{ url_for('index') }}">Ajouter un patient</a>
 </div>
 {% endif %}
 {% endblock %}
