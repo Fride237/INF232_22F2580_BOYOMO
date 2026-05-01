@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% block title %}Analyse — MediCollect{% endblock %}
+{% block content %}
+
+{% if empty %}
+<div class="empty">
+  <i class="fas fa-chart-bar" style="font-size:3rem;color:#ccc"></i>
+  <p>{{ message }}</p>
+  <a class="btn-primary" href="{{ url_for('index') }}">Ajouter des patients</a>
+</div>
+
+{% else %}
+
+<!-- ── TITRE ── -->
+<div class="page-header">
+  <h1><i class="fas fa-chart-line"></i> Analyse Descriptive &amp; Prédictive</h1>
+</div>
+
+<!-- ── GUIDE ANALYSE ── -->
+<div class="info-box">
+  <i class="fas fa-info-circle"></i>
+  <strong>Comment lire cette page ?</strong>
+  Faites défiler de haut en bas :
+  (1) métriques clés,
+  (2) statistiques descriptives,
+  (3) régressions linéaires (simple &amp; multiple) avec prédictions,
+  (4) graphiques interactifs.
+</div>
+
+<!-- ── MÉTRIQUES ── -->
+<div class="metrics">
+  <div class="metric"><i class="fas fa-users"></i>
+    <span class="val">{{ resume.total }}</span><span class="lbl">Patients</span></div>
+  <div class="metric blue"><i class="fas fa-male"></i>
+    <span class="val">{{ resume.hommes }}</span><span class="lbl">Hommes</span></div>
+  <div class="metric pink"><i class="fas fa-female"></i>
+    <span class="val">{{ resume.femmes }}</span><span class="lbl">Femmes</span></div>
+  <div class="metric green"><i class="fas fa-heartbeat"></i>
+    <span class="val">{{ resume.gueris }}</span><span class="lbl">Guéris</span></div>
+  <div class="metric orange"><i class="fas fa-procedures"></i>
+    <span class="val">{{ resume.en_cours }}</span><span class="lbl">En cours</span></div>
+  <div class="metric purple"><i class="fas fa-percentage"></i>
+    <span class="val">{{ resume.taux_guerison }}%</span><span class="lbl">Taux guérison</span></div>
+</div>
+
+<!-- ── RÉSUMÉ ── -->
+<div class="summary-row">
+  <div class="scard"><b>🎂 Âge moyen</b><p>{{ resume.age_moy }} ans</p></div>
+  <div class="scard"><b>🌡️ Temp. moyenne</b><p>{{ resume.temp_moy }} °C</p></div>
+  <div class="scard"><b>⏱️ Durée moyenne</b><p>{{ resume.duree_moy }} jours</p></div>
+  <div class="scard"><b>💰 Coût moyen</b><p>{{ '{:,.0f}'.format(resume.cout_moy) }} FCFA</p></div>
+  <div class="scard"><b>💸 Coût total</b><p>{{ '{:,.0f}'.format(resume.cout_total) }} FCFA</p></div>
+  <div class="scard"><b>🦠 Maladie fréquente</b><p>{{ resume.top_maladie }}</p></div>
+</div>
+
+<!-- ── STATS DESCRIPTIVES ── -->
+<div class="card">
+  <h2><i class="fas fa-table"></i> Statistiques Descriptives (Variables Quantitatives)</h2>
+  <p class="hint">Moyenne, médiane, mode, écart-type, quartiles, skewness, kurtosis…</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Variable</th><th>n</th><th>Moyenne</th><th>Médiane</th><th>Mode</th>
+          <th>Éc.-type</th><th>Variance</th><th>Min</th><th>Max</th><th>Étendue</th>
+          <th>Q1</th><th>Q3</th><th>IQR</th><th>CV%</th><th>Skewness</th><th>Kurtosis</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in stats %}
+        <tr>
+          <td><strong>{{ s.variable }}</strong></td>
+          <td>{{ s.n }}</td><td>{{ s.moyenne }}</td><td>{{ s.mediane }}</td>
+          <td>{{ s.mode }}</td><td>{{ s.ecart_type }}</td><td>{{ s.variance }}</td>
+          <td>{{ s.minimum }}</td><td>{{ s.maximum }}</td><td>{{ s.etendue }}</td>
+          <td>{{ s.q1 }}</td><td>{{ s.q3 }}</td><td>{{ s.iqr }}</td>
+          <td>{{ s.cv }}</td><td>{{ s.skewness }}</td><td>{{ s.kurtosis }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── FRÉQUENCES ── -->
+<div class="card">
+  <h2><i class="fas fa-list"></i> Tableaux de Fréquences (Variables Qualitatives)</h2>
+  <div class="freq-grid">
+    {% for var, rows in freq.items() %}
+    <div class="freq-card">
+      <h4>{{ var | capitalize }}</h4>
+      <table>
+        <thead><tr><th>Modalité</th><th>Effectif</th><th>%</th></tr></thead>
+        <tbody>
+          {% for r in rows %}
+          <tr><td>{{ r.modalite }}</td><td>{{ r.effectif }}</td><td>{{ r.pct }}%</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ── RÉGRESSION SIMPLE ── -->
+{% if reg1 %}
+<div class="card reg-card">
+  <h2><i class="fas fa-chart-line"></i> Régression Linéaire Simple
+    <span class="badge-reg">Durée → Coût</span></h2>
+  <p class="hint">
+    La régression simple mesure l'impact d'<strong>une seule variable</strong>
+    (la durée) sur le coût du traitement.
+  </p>
+
+  <div class="reg-box">
+    <div class="reg-equation">
+      📐 <strong>Équation :</strong> {{ reg1.equation }}
+    </div>
+    <div class="reg-metrics">
+      <div class="rm"><span>R²</span><strong>{{ reg1.r2 }}</strong></div>
+      <div class="rm"><span>R² (%)</span><strong>{{ reg1.r2_pct }}%</strong></div>
+      <div class="rm"><span>Coefficient durée</span><strong>{{ reg1.coef }} FCFA/j</strong></div>
+      <div class="rm"><span>Constante</span><strong>{{ reg1.intercept }}</strong></div>
+      <div class="rm"><span>p-value</span>
+        <strong class="{{ 'sig' if reg1.pvalue < 0.05 else 'nonsig' }}">
+          {{ reg1.pvalue }}
+          {{ '✅ significatif' if reg1.pvalue < 0.05 else '⚠️ non significatif' }}
+        </strong></div>
+    </div>
+    <div class="reg-interp">
+      💡 {{ reg1.interpretation }}
+    </div>
+  </div>
+
+  <!-- Prédiction interactive -->
+  <div class="prediction-box">
+    <h3><i class="fas fa-calculator"></i> Prédire le coût</h3>
+    <p>Entrez une durée pour estimer le coût :</p>
+    <div class="pred-form">
+      <input type="number" id="pred_duree" min="1" max="365"
+             value="{{ reg1.pred_duree }}" placeholder="Durée (jours)">
+      <button onclick="predire()">Calculer</button>
+    </div>
+    <div id="pred_result" class="pred-result">
+      Pour <strong>{{ reg1.pred_duree }}</strong> jours →
+      Coût estimé : <strong id="pred_val">{{ '{:,.0f}'.format(reg1.pred_cout) }}</strong> FCFA
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── RÉGRESSION MULTIPLE ── -->
+{% if reg2 %}
+<div class="card reg-card">
+  <h2><i class="fas fa-project-diagram"></i> Régression Linéaire Multiple
+    <span class="badge-reg">Durée + Âge + Température → Coût</span></h2>
+  <p class="hint">
+    La régression multiple mesure l'impact de <strong>plusieurs variables</strong>
+    simultanément sur le coût.
+  </p>
+
+  <div class="reg-box">
+    <div class="reg-equation">
+      📐 <strong>Équation :</strong> {{ reg2.equation }}
+    </div>
+    <div class="reg-metrics">
+      <div class="rm"><span>R²</span><strong>{{ reg2.r2 }}</strong></div>
+      <div class="rm"><span>R² (%)</span><strong>{{ reg2.r2_pct }}%</strong></div>
+      <div class="rm"><span>Coef. Durée</span><strong>{{ reg2.coef_duree }} FCFA/j</strong></div>
+      <div class="rm"><span>Coef. Âge</span><strong>{{ reg2.coef_age }}</strong></div>
+      <div class="rm"><span>Coef. Température</span><strong>{{ reg2.coef_temp }}</strong></div>
+    </div>
+    <div class="reg-interp">💡 {{ reg2.interpretation }}</div>
+  </div>
+
+  <!-- Prédiction multiple -->
+  <div class="prediction-box">
+    <h3><i class="fas fa-calculator"></i> Prédire le coût (modèle multiple)</h3>
+    <div class="pred-form">
+      <label>Durée (j) <input type="number" id="m_duree" value="20" min="1"></label>
+      <label>Âge       <input type="number" id="m_age"   value="40" min="0"></label>
+      <label>Temp.     <input type="number" id="m_temp"  value="38" step="0.1"></label>
+      <button onclick="predireMultiple()">Calculer</button>
+    </div>
+    <div id="pred_multi_result" class="pred-result" style="display:none"></div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── CORRÉLATION ── -->
+<div class="card">
+  <h2><i class="fas fa-link"></i> Corrélation Durée–Coût</h2>
+  <p>Coefficient de corrélation de Pearson :
+    <strong>r = {{ resume.corr_dc }}</strong>
+    {% if resume.corr_dc|abs > 0.7 %}
+      → <span class="sig">Forte corrélation positive ✅</span>
+    {% elif resume.corr_dc|abs > 0.3 %}
+      → <span style="color:#f57c00">Corrélation modérée</span>
+    {% else %}
+      → Corrélation faible
+    {% endif %}
+  </p>
+</div>
+
+<!-- ── GRAPHIQUES ── -->
+<div class="card">
+  <h2><i class="fas fa-chart-pie"></i> Visualisations Interactives</h2>
+  <p class="hint">Tous les graphiques sont interactifs : zoom, survol, légende cliquable.</p>
+
+  <div class="charts2">
+    <div class="cbox"><div id="g_maladie"></div></div>
+    <div class="cbox"><div id="g_sexe"></div></div>
+  </div>
+  <div class="charts2">
+    <div class="cbox"><div id="g_age"></div></div>
+    <div class="cbox"><div id="g_statut"></div></div>
+  </div>
+  <div class="cbox-full"><div id="g_reg"></div></div>
+  <div class="charts2">
+    <div class="cbox"><div id="g_cs"></div></div>
+    <div class="cbox"><div id="g_temp"></div></div>
+  </div>
+  <div class="cbox-full"><div id="g_corr"></div></div>
+</div>
+
+<script>
+// ── Tracés Plotly ──
+function draw(id, data) {
+  var obj = JSON.parse(data);
+  Plotly.newPlot(id, obj.data, obj.layout, {responsive:true});
+}
+draw('g_maladie', '{{ graphs.maladie | safe }}');
+draw('g_sexe',    '{{ graphs.sexe    | safe }}');
+draw('g_age',     '{{ graphs.age     | safe }}');
+draw('g_statut',  '{{ graphs.statut  | safe }}');
+draw('g_reg',     '{{ graphs.reg_simple | safe }}');
+draw('g_cs',      '{{ graphs.cout_service | safe }}');
+draw('g_temp',    '{{ graphs.temp    | safe }}');
+draw('g_corr',    '{{ graphs.correlation | safe }}');
+
+// ── Prédiction simple ──
+var coef      = {{ reg1.coef if reg1 else 0 }};
+var intercept = {{ reg1.intercept if reg1 else 0 }};
+
+function predire() {
+  var d = parseFloat(document.getElementById('pred_duree').value);
+  if (isNaN(d) || d < 1) { alert('Entrez une durée valide.'); return; }
+  var cout = coef * d + intercept;
+  document.getElementById('pred_result').innerHTML =
+    'Pour <strong>' + d + '</strong> jours → Coût estimé : <strong>' +
+    Math.round(cout).toLocaleString('fr-FR') + '</strong> FCFA';
+  document.getElementById('pred_result').style.display = 'block';
+}
+
+// ── Prédiction multiple ──
+var c_dur  = {{ reg2.coef_duree  if reg2 else 0 }};
+var c_age  = {{ reg2.coef_age    if reg2 else 0 }};
+var c_temp = {{ reg2.coef_temp   if reg2 else 0 }};
+var c_int  = {{ reg2.intercept   if reg2 else 0 }};
+
+function predireMultiple() {
+  var d = parseFloat(document.getElementById('m_duree').value);
+  var a = parseFloat(document.getElementById('m_age').value);
+  var t = parseFloat(document.getElementById('m_temp').value);
+  if (isNaN(d)||isNaN(a)||isNaN(t)) { alert('Remplissez tous les champs.'); return; }
+  var cout = c_dur*d + c_age*a + c_temp*t + c_int;
+  var el = document.getElementById('pred_multi_result');
+  el.innerHTML =
+    'Durée=' + d + 'j, Âge=' + a + ' ans, Temp=' + t + '°C → ' +
+    '<strong>Coût estimé : ' + Math.round(cout).toLocaleString('fr-FR') + ' FCFA</strong>';
+  el.style.display = 'block';
+}
+</script>
+
+{% endif %}
+{% endblock %}
